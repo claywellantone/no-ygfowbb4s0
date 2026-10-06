@@ -1,2 +1,3 @@
-# no-ygfowbb4s0
-no-ygfowbb4s0
+# verify-02
+
+Small configure helpers used by our setup pipeline.
