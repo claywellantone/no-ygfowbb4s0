@@ -1,3 +1,3 @@
-# verify-02
+# check-79
 
-Small configure helpers used by our setup pipeline.
+Small init helpers used by our configure pipeline.
