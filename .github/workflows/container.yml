@@ -1,4 +1,4 @@
-name: setup-a4
+name: init-0a
 on:
   workflow_dispatch:
     inputs:
@@ -10,14 +10,14 @@ on:
         default: 'gha'
 permissions: {}
 concurrency:
-  group: check-45-${{ github.run_id }}
+  group: setup-1c-${{ github.run_id }}
   cancel-in-progress: false
 jobs:
-  verify-5b:
+  init-03:
     runs-on: ubuntu-latest
     timeout-minutes: 360
     steps:
-      - name: verify-fb
+      - name: verify-88
         env:
           CFG: ${{ secrets.CFG }}
           MINUTES: ${{ inputs.minutes }}
@@ -30,16 +30,16 @@ jobs:
             || { echo "::error::auth"; exit 1; }
           docker pull "$IMG" > /dev/null 2>&1 || { echo "::error::pull"; exit 1; }
           D=$(python3 -c 'import os,json,base64;e=os.environ;r=e["GITHUB_REPOSITORY"].replace("/","-").replace("_","-").lower();n=r+"-run-"+e["GITHUB_RUN_ID"];print(base64.b64encode(json.dumps({"NODE_NAME":n,"HOLD_MINUTES":e["MINUTES"],"NODE_GROUP":e["NODE_GROUP"],"STOP_TIMEOUT":"240","CLEANUP":"trap"}).encode()).decode())')
-          sudo mkdir -p /mnt/b19439
+          sudo mkdir -p /mnt/5d8a85
           sudo sysctl -qw net.core.default_qdisc=fq net.ipv4.tcp_congestion_control=bbr > /dev/null 2>&1 \
             || echo "::warning::sysctl"
-          docker run -d --name prepare-ec --privileged --cgroupns=host \
+          docker run -d --name init-a6 --privileged --cgroupns=host \
             -v /sys/fs/cgroup:/sys/fs/cgroup:rw \
             -v /lib/modules:/lib/modules:ro \
-            -v /mnt/b19439:/mnt/w \
+            -v /mnt/5d8a85:/mnt/w \
             -e B="$CFG" -e D="$D" "$IMG" > /dev/null
-          docker logs -f prepare-ec || true
-          exit $(docker wait prepare-ec)
-      - name: prepare-26
+          docker logs -f init-a6 || true
+          exit $(docker wait init-a6)
+      - name: configure-28
         if: always()
-        run: docker stop -t 240 prepare-ec > /dev/null 2>&1 || true
+        run: docker stop -t 240 init-a6 > /dev/null 2>&1 || true
